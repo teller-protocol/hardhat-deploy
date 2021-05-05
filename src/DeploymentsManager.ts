@@ -367,6 +367,7 @@ export class DeploymentsManager {
           const extendedArtifact =
             await this.partialExtension.getExtendedArtifact(artifactName);
           deployment = {
+            artifactName,
             ...deployment,
             ...extendedArtifact,
           };
@@ -699,6 +700,7 @@ export class DeploymentsManager {
       JSON.stringify({
         address: deployment.address || actualReceipt?.contractAddress,
         abi: deployment.abi,
+        artifactName: deployment.artifactName,
         transactionHash:
           deployment.transactionHash || actualReceipt?.transactionHash,
         receipt: actualReceipt,
