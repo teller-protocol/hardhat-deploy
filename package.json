@@ -85,7 +85,8 @@
     "qs": "^6.9.4"
   },
   "scripts": {
-    "prepare": "node ./.setup.js",
+    "prepare": "npm run build",
+    "setup": "node ./.setup.js",
     "compile": "hardhat compile",
     "lint": "eslint \"**/*.{js,ts}\" && solhint src/**/*.sol",
     "lint:fix": "eslint --fix \"**/*.{js,ts}\" && solhint --fix src/**/*.sol",

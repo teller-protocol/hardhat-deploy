@@ -598,7 +598,7 @@ export function addHelpers(
       transactionHash: receipt.transactionHash,
       libraries: options.libraries,
     };
-    await saveDeployment(name, deployment);
+    await saveDeployment(name, deployment, artifactName);
     if (options.log || hardwareWallet) {
       print(
         `: deployed at ${deployment.address} with ${receipt?.gasUsed} gas\n`
@@ -883,6 +883,7 @@ export function addHelpers(
     let updateArgs: any[] | undefined;
     let upgradeIndex;
     let proxyContract: ExtendedArtifact = eip173Proxy;
+    let artifactName = 'EIP173Proxy'
     let checkABIConflict = true;
     let viaAdminContract:
       | string
@@ -930,6 +931,7 @@ export function addHelpers(
             proxyContract = await partialExtension.getExtendedArtifact(
               options.proxy.proxyContract
             );
+            artifactName = options.proxy.proxyContract
           } catch (e) {}
           if (!proxyContract || proxyContract === eip173Proxy) {
             if (options.proxy.proxyContract === 'EIP173ProxyWithReceive') {
@@ -1261,7 +1263,7 @@ Note that in this case, the contract deployment will not behave the same if depl
           ? proxiedDeployment.history.concat([oldDeployment])
           : [oldDeployment];
       }
-      await saveDeployment(name, proxiedDeployment);
+      await saveDeployment(name, proxiedDeployment, artifactName);
 
       const deployment = await partialExtension.get(name);
       return {
@@ -1285,7 +1287,7 @@ Note that in this case, the contract deployment will not behave the same if depl
         proxiedDeployment.history = proxiedDeployment.history
           ? proxiedDeployment.history.concat([oldDeployment])
           : [oldDeployment];
-        await saveDeployment(name, proxiedDeployment);
+        await saveDeployment(name, proxiedDeployment, oldDeployment.artifactName);
       }
 
       const deployment = await partialExtension.get(name);
@@ -1640,13 +1642,17 @@ Note that in this case, the contract deployment will not behave the same if depl
           }
         }
 
+        const diamondArgs = [
+          facetCuts,
+          { owner: diamantaireDeployment.address }
+        ]
         if (expectedAddress && deterministicDiamondAlreadyDeployed) {
           proxy = {
             ...diamondBase,
             address: expectedAddress,
-            args: [diamantaireDeployment.address],
+            args: diamondArgs,
           };
-          await saveDeployment(proxyName, proxy);
+          await saveDeployment(proxyName, proxy, proxy.contractName);
         } else {
           const createReceipt = await execute(
             diamantaireName,
@@ -1694,9 +1700,9 @@ Note that in this case, the contract deployment will not behave the same if depl
             address: proxyAddress,
             receipt: createReceipt,
             transactionHash: createReceipt.transactionHash,
-            args: [diamantaireDeployment.address],
+            args: diamondArgs,
           };
-          await saveDeployment(proxyName, proxy);
+          await saveDeployment(proxyName, proxy, proxy.contractName);
         }
 
         await saveDeployment(name, {
@@ -1710,7 +1716,7 @@ Note that in this case, the contract deployment will not behave the same if depl
           diamondCut: facetCuts,
           abi,
           execute: options.execute,
-        });
+        }, proxy.contractName);
       } else {
         if (!oldDeployment) {
           throw new Error(`Cannot find Deployment for ${name}`);
@@ -1752,7 +1758,7 @@ Note that in this case, the contract deployment will not behave the same if depl
           facets: facetSnapshot,
           diamondCut: facetCuts,
           execute: options.execute,
-        });
+        }, oldDeployment.artifactName);
       }
 
       const deployment = await partialExtension.get(name);
@@ -1774,7 +1780,7 @@ Note that in this case, the contract deployment will not behave the same if depl
       // proxiedDeployment.history = proxiedDeployment.history
       //   ? proxiedDeployment.history.concat([oldDeployment])
       //   : [oldDeployment];
-      await saveDeployment(name, proxiedDeployment);
+      await saveDeployment(name, proxiedDeployment, proxiedDeployment.artifactName);
 
       const deployment = await partialExtension.get(name);
       return {
@@ -1879,7 +1885,7 @@ Note that in this case, the contract deployment will not behave the same if depl
           console.log(`Please execute the following:`);
           console.log(
             `---------------------------------------------------------------------------------------`
-          );
+         );
           if (contract) {
             console.log(
               `
