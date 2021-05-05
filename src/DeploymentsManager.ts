@@ -355,21 +355,21 @@ export class DeploymentsManager {
       this.partialExtension.getArtifact,
       async (
         name: string,
-        deployment: DeploymentSubmission,
-        artifactName?: string
+        deployment: DeploymentSubmission
       ): Promise<void> => {
         if (
-          artifactName &&
+          deployment.artifactName &&
           this.db.writeDeploymentsToFiles &&
           this.network.saveDeployments
         ) {
           // toSave (see deployments.save function)
-          const extendedArtifact =
-            await this.partialExtension.getExtendedArtifact(artifactName);
+          const extendedArtifact = await this.partialExtension.getExtendedArtifact(
+            deployment.artifactName
+          );
+          // Use extended artifact data as default
           deployment = {
-            artifactName,
-            ...deployment,
             ...extendedArtifact,
+            ...deployment,
           };
         }
         await this.partialExtension.save(name, deployment);
