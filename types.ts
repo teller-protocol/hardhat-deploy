@@ -293,6 +293,7 @@ export type Facet = {
 };
 
 export interface DeploymentSubmission extends Deployment {
+  contractName?: string
   solcInput?: string;
   execute?: {
     methodName: string;

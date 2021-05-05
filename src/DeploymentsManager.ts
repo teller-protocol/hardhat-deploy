@@ -700,7 +700,7 @@ export class DeploymentsManager {
       JSON.stringify({
         address: deployment.address || actualReceipt?.contractAddress,
         abi: deployment.abi,
-        artifactName: deployment.artifactName,
+        artifactName: deployment.artifactName ?? deployment.contractName,
         transactionHash:
           deployment.transactionHash || actualReceipt?.transactionHash,
         receipt: actualReceipt,
