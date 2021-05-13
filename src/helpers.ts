@@ -1480,13 +1480,6 @@ Note that in this case, the contract deployment will not behave the same if depl
         facetName = typeof facet.contract === 'string' ? facet.contract : facet.contract.artifactName
         facetOpts = { ...options, ...facet }
       }
-      const constructor = facetABI.find(
-        (fragment: {type: string; inputs: any[]}) =>
-          fragment.type === 'constructor'
-      );
-      if (constructor) {
-        throw new Error(`Facet with constructor not yet supported`); // TODO remove that requirement
-      }
       abi = mergeABIs([abi, facetABI], {
         check: true,
         skipSupportsInterface: false,
