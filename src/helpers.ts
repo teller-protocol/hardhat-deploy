@@ -591,7 +591,7 @@ export function addHelpers(
       options.deterministicDeployment && create2Address
         ? create2Address
         : receipt.contractAddress;
-    const deployment = {
+    const deployment: Deployment = {
       ...preDeployment,
       artifactName,
       address,
@@ -599,6 +599,12 @@ export function addHelpers(
       transactionHash: receipt.transactionHash,
       libraries: options.libraries,
     };
+    const oldDeployment = await getDeploymentOrNUll(name)
+    if (oldDeployment != null) {
+      deployment.history = oldDeployment.history
+        ? oldDeployment.history.concat(oldDeployment)
+        : [oldDeployment]
+    }
     await saveDeployment(name, deployment);
     if (options.log || hardwareWallet) {
       print(
