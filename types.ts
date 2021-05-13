@@ -76,6 +76,7 @@ export interface DiamondFacetDeployOptions extends Omit<DeployOptions, 'from' | 
 export interface DiamondOptions extends TxOptions {
   owner?: Address;
   facets: DiamondFacets;
+  onFacetDeployment?: (result: DeployResult) => void | Promise<void>
   log?: boolean;
   libraries?: Libraries;
   linkedData?: any; // JSONable ?
