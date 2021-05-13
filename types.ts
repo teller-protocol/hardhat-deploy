@@ -68,7 +68,11 @@ export type Receipt = {
   confirmations?: number;
 };
 
-export type DiamondFacets = Array<string>; // TODO support Object for facet : {contract} // could be deploymentNames too ? or {abi,address}
+export type DiamondFacets = Array<DiamondFacet>; // TODO support Object for facet : {contract} // could be deploymentNames too ? or {abi,address}
+export type DiamondFacet = string | DiamondFacetDeployOptions
+export interface DiamondFacetDeployOptions extends Omit<DeployOptions, 'from' | 'deterministicDeployment' | 'fieldsToCompare'> {
+  contract: string | (ArtifactData & { artifactName: string });
+}
 export interface DiamondOptions extends TxOptions {
   owner?: Address;
   facets: DiamondFacets;
