@@ -34,8 +34,8 @@ import {
   ExtendedArtifact,
   FacetCutAction,
   Facet,
-  ArtifactData,
-} from '../types';
+  ArtifactData, DiamondFacetDeployOptions, ABI
+} from '../types'
 import {PartialExtension} from './internal/types';
 import {UnknownSignerError} from './errors';
 import {mergeABIs, recode} from './utils';
@@ -1463,32 +1463,36 @@ Note that in this case, the contract deployment will not behave the same if depl
     let abi: any[] = diamondBase.abi.concat([]);
     const facetCuts: FacetCut[] = [];
     for (const facet of options.facets) {
-      const artifact = await getArtifact(facet); // TODO getArtifactFromOptions( // allowing to pass bytecode / abi
-      const constructor = artifact.abi.find(
+      // TODO getArtifactFromOptions( // allowing to pass bytecode / abi
+      let facetABI: ABI
+      let facetName: string
+      let facetOpts: DeployOptions
+      if (typeof facet === 'string') {
+        ({ abi: facetABI } = await getArtifact(facet))
+        facetName = facet
+        facetOpts = options
+      } else {
+        if (typeof facet.contract === 'string') {
+          ({ abi: facetABI } = await getArtifact(facet.contract))
+        } else {
+          ({ abi: facetABI } = facet.contract)
+        }
+        facetName = typeof facet.contract === 'string' ? facet.contract : facet.contract.artifactName
+        facetOpts = { ...options, ...facet }
+      }
+      const constructor = facetABI.find(
         (fragment: {type: string; inputs: any[]}) =>
           fragment.type === 'constructor'
       );
       if (constructor) {
         throw new Error(`Facet with constructor not yet supported`); // TODO remove that requirement
       }
-      abi = mergeABIs([abi, artifact.abi], {
+      abi = mergeABIs([abi, facetABI], {
         check: true,
         skipSupportsInterface: false,
       });
       // TODO allow facet to be named so multiple version could coexist
-      const implementation = await _deployOne(facet, {
-        from: options.from,
-        autoMine: options.autoMine,
-        estimateGasExtra: options.estimateGasExtra,
-        estimatedGasLimit: options.estimatedGasLimit,
-        gasPrice: options.gasPrice,
-        log: options.log,
-        // deterministicDeployment: options.deterministicDeployment, // todo ?
-        libraries: options.libraries,
-        // fieldsToCompare: options.fieldsToCompare, // todo ?
-        linkedData: options.linkedData,
-        // args: options.args, // toDO ?
-      });
+      const implementation = await _deployOne(facetName, facetOpts);
       if (implementation.newlyDeployed) {
         // console.log(`facet ${facet} deployed at ${implementation.address}`);
         const newFacet = {
@@ -1498,7 +1502,7 @@ Note that in this case, the contract deployment will not behave the same if depl
         facetSnapshot.push(newFacet);
         newSelectors.push(...newFacet.functionSelectors);
       } else {
-        const oldImpl = await getDeployment(facet);
+        const oldImpl = await getDeployment(facetName);
         const newFacet = {
           facetAddress: oldImpl.address,
           functionSelectors: sigsFromABI(oldImpl.abi),
