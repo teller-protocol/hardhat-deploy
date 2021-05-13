@@ -1493,6 +1493,7 @@ Note that in this case, the contract deployment will not behave the same if depl
       });
       // TODO allow facet to be named so multiple version could coexist
       const implementation = await _deployOne(facetName, facetOpts);
+      await options.onFacetDeployment?.(implementation)
       if (implementation.newlyDeployed) {
         // console.log(`facet ${facet} deployed at ${implementation.address}`);
         const newFacet = {
