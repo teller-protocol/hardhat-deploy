@@ -34,7 +34,7 @@ import {
   ExtendedArtifact,
   FacetCutAction,
   Facet,
-  ArtifactData, DiamondFacetDeployOptions, ABI
+  ArtifactData, DiamondFacetDeployOptions, ABI, Libraries, ProxyOptions
 } from '../types'
 import {PartialExtension} from './internal/types';
 import {UnknownSignerError} from './errors';
@@ -1475,11 +1475,20 @@ Note that in this case, the contract deployment will not behave the same if depl
       // TODO getArtifactFromOptions( // allowing to pass bytecode / abi
       let facetABI: ABI
       let facetName: string
-      let facetOpts: DeployOptions
+      let facetOpts: DeployOptions = {
+        linkedData: options.linkedData,
+        libraries: options.libraries,
+        from: options.from,
+        gasLimit: options.gasLimit,
+        gasPrice: options.gasPrice,
+        log: options.log,
+        autoMine: options.autoMine,
+        estimatedGasLimit: options.estimatedGasLimit,
+        estimateGasExtra: options.estimateGasExtra,
+      }
       if (typeof facet === 'string') {
         ({ abi: facetABI } = await getArtifact(facet))
         facetName = facet
-        facetOpts = options
       } else {
         if (typeof facet.contract === 'string') {
           ({ abi: facetABI } = await getArtifact(facet.contract))
@@ -1487,7 +1496,7 @@ Note that in this case, the contract deployment will not behave the same if depl
           ({ abi: facetABI } = facet.contract)
         }
         facetName = typeof facet.contract === 'string' ? facet.contract : facet.contract.artifactName
-        facetOpts = { ...options, ...facet }
+        facetOpts = { ...facetOpts, ...facet }
       }
       abi = mergeABIs([abi, facetABI], {
         check: true,
