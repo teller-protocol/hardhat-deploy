@@ -1311,16 +1311,20 @@ export class DeploymentsManager {
         chainId
       ); // TODO pass in network name
       if (
-        this.network.name === 'hardhat' &&
+        /hardhat|localhost/.test(this.network.name) &&
         this.impersonateUnknownAccounts &&
         !process.env.HARDHAT_DEPLOY_NO_IMPERSONATION
       ) {
-        for (const address of unknownAccounts) {
-          await this.network.provider.request({
-            method: 'hardhat_impersonateAccount',
-            params: [address],
-          });
-          this.impersonatedAccounts.push(address);
+        try {
+          for (const address of unknownAccounts) {
+            await this.network.provider.request({
+              method: 'hardhat_impersonateAccount',
+              params: [address],
+            });
+            this.impersonatedAccounts.push(address);
+          }
+        } catch {
+          console.log('Could not impersonate accounts')
         }
       }
       this.db.namedAccounts = namedAccounts;
