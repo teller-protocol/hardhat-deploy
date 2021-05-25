@@ -1311,7 +1311,7 @@ export class DeploymentsManager {
         chainId
       ); // TODO pass in network name
       if (
-        /hardhat|localhost/.test(this.network.name) &&
+        'forking' in this.network.config &&
         this.impersonateUnknownAccounts &&
         !process.env.HARDHAT_DEPLOY_NO_IMPERSONATION
       ) {
