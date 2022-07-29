@@ -114,6 +114,12 @@ export function loadAllDeployments(
         fileName,
         onlyABIAndAddress
       );
+
+      if(!contracts){
+        console.error('Could not load deployments.')
+        return
+      }
+
       all[chainIdFound][name] = {
         name,
         chainId: chainIdFound,
@@ -135,6 +141,12 @@ export function loadAllDeployments(
             undefined,
             networkChainId
           );
+
+          if(!contracts){
+            console.error('Could not load deployments.')
+            return all
+          }
+
           all[networkChainId][networkName] = {
             name: networkName,
             chainId: networkChainId,
@@ -212,9 +224,28 @@ function loadDeployments(
   for (const fileName of fileNames) {
     if (fileName.substr(fileName.length - 5) === '.json') {
       const deploymentFileName = path.join(deployPath, fileName);
-      let deployment = JSON.parse(
-        fs.readFileSync(deploymentFileName).toString()
-      );
+
+      
+      let deployment:any;
+ 
+      try{
+         deployment = JSON.parse(
+          fs.readFileSync(deploymentFileName).toString()
+        );
+      
+      }catch(e){
+        console.error(`Failed to parse ${deploymentFileName}`)
+     
+        console.error(e)
+        return
+      }
+      
+      if(!deployment){
+        throw new Error(`Undefined Deployment:,${deploymentFileName}`)
+        return
+      }
+
+
       if (!deployment.address && deployment.networks) {
         if (truffleChainId && deployment.networks[truffleChainId]) {
           // TRUFFLE support
@@ -256,6 +287,11 @@ export function addDeployments(
     expectedChainId,
     truffleChainId
   );
+
+  if(!contracts){
+    console.error('Could not load contracts from deployments.')
+    return 
+  }
   for (const key of Object.keys(contracts)) {
     db.deployments[key] = contracts[key];
     // TODO ABIS
